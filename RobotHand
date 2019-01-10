@@ -1,0 +1,42 @@
+#include <Servo.h>
+#include<Wire.h>
+
+#define SERVOPIN 7
+//#define SERVO2PIN 10
+
+Servo myservo;
+
+const int MPU_addr=0x68;  // I2C address of the MPU-6050
+int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
+void setup(){
+  Wire.begin();
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x6B);  // PWR_MGMT_1 register
+  Wire.write(0);     // set to zero (wakes up the MPU-6050)
+  Wire.endTransmission(true);
+  Serial.begin(9600);
+  myservo.attach(SERVOPIN);
+  //myservo2.attach(SERVO2PIN);
+  
+}
+void loop(){
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU_addr,14,true);  // request a total of 14 registers
+  
+  AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)    
+  Serial.print("AcX = "); Serial.println(AcX);
+  int mappedAcX = map(AcX,-16000 ,16000, 5, 175);
+  Serial.println(mappedAcX);
+  myservo.write(mappedAcX);
+  delay(400);
+
+  
+  /*AcY=Wire.read()<<8|Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  Serial.print("AcY = "); Serial.println(AcY);
+  int mappedAcY = map(AcY, -16000, 16000, 5, 175);
+  Serial.println(mappedAcY);
+  //myservo2.write(mappedAcY);*/
+
+}
